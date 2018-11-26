@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>AnamorphoDyn</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Oswald:300" rel="stylesheet"> 
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="colorbrewer.js"></script>
+    <script src="topojson_old.js"></script> 
+    <script src = "https://d3js.org/topojson.v1.min.js"></script>  
+    <script src="cartogram.js"></script>
+
+    <style>
+    
+    /*
+    @import url('https://fonts.googleapis.com/css?family=Open+Sans:300');
+    @import url('https://fonts.googleapis.com/css?family=Oswald:300');*/
+
+
+    #titre {
+        color: #525252;
+        text-align: center;
+        font-family: 'Oswald', sans-serif;
+        font-size: 30px;
+    }
+
+    #Note {
+      font-family: 'Open Sans', sans-serif;
+      font-style: italic;
+      font-size: 16px;
+      color: #737373;
+      width: 80%;
+      margin-left: auto;
+      margin-right: auto;
+
+    }
+
+    #piedpage {
+      font-family: 'Open Sans', sans-serif;
+      font-style: italic;
+      font-size: 10px;
+
+      bottom: 0;
+      margin: 0 auto;
+      width: 1000px;
+    }
+
+    p {
+      font-family: 'Open Sans', sans-serif;
+      text-align: center;
+    }
+
+    #container {
+      margin: 0 auto;
+      width: 1000px;
+
+    }
+
+    #map {
+        display: block;
+        position: absolute;
+        background: #fff;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+    }
+
+    select {
+      font-family: 'Open Sans', sans-serif;
+    }
+
+    path.state {
+        stroke: #666;
+        stroke-width: .5;
+      }
+
+    path.state:hover {
+        stroke: #000;
+      }
+
+    #layer {
+      margin-left: 30px;
+    }
+
+    .tabulation {
+      margin-left: 20px;
+      }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div id="entete">
+        <h1 id="titre"> Evolution de la ségrégation socio-résidentielle à Bogotá </h1>
+        <p id="Note"> L'indice de condition sociale (ICS) est un indicateur synthétique représentatif du revenu des ménages. </br>
+        Il correspond au rapport entre le nombre moyen d'années d'études des membres du ménages de 15 ans ou plus et le nombre moyen de personnes par pièce dans le logement.
+    	</br>
+    	</br>
+    	L’ICS est calculé pour tous les ménages de Bogotá et défini en six catégories. Chaque ménage est alors classé, selon sa valeur d’ICS, dans une des catégories qui reflètent sa position dans la hiérarchie sociale une année donnée. </br>
+    	Les classes d’ICS 1 et 6 correspondent respectivement aux 10 % des ménages les plus pauvres et aux 10 % des ménages les plus riches.
+    	</p>
+      </br>
+        <p id="piedpage"> <span class="tabulation">Sources : DANE, recensements 1993 et 2005 </span>     
+                <span class="tabulation">Traitement des données : A. SALAS, M. PIRON, F. DUREAU </span>
+                <span class="tabulation">Base cartographique SIG : A. LEPETIT, F. DEMORAES </span>     
+                <span class="tabulation">Réalisation : M. BOUQUET - 2018 </span>
+        </p>
+
+      </br>
+        <p>
+          <label>Choisissez le facteur de déformation <select id="field"></select></label>
+          <label>pour l'année <select id="year"></select></label>
+          <span id="status"></span>
+        </p>
+   </div>
+
+        </br>
+
+    <div id="container">
+      <svg id="map"></svg>
+    </div>
+
+    </br>
+      
+
+
+
+    <script>
+        // hide the form if the browser doesn't do SVG,
+        // (then just let everything else fail)
+        if (!document.createElementNS) {
+        document.getElementsByTagName("form")[0].style.display = "none";
+        }
+
+        // Width and Height of the whole visualization
+        var width = 1000;
+        var height = 800;
+
+
+        // var percent = (function() {
+        //     var fmt = d3.format(".2f");
+        //     return function(n) { return fmt(n) + "%"; };
+        // })(),
+            
+        fields = [
+            {name: "Aucun", id: "none"},
+            {name: "ICS1", id: "sector1", key: "SECTO1_%d", prop:"Prop_SECTO1_%d"},
+            {name: "ICS2", id: "sector2", key: "SECTO2_%d", prop:"Prop_SECTO2_%d"},
+            {name: "ICS3", id: "sector3", key: "SECTO3_%d", prop:"Prop_SECTO3_%d"},
+            {name: "ICS4", id: "sector4", key: "SECTO4_%d", prop:"Prop_SECTO4_%d"},
+            {name: "ICS5", id: "sector5", key: "SECTO5_%d", prop:"Prop_SECTO5_%d"},
+            {name: "ICS6", id: "sector6", key: "SECTO6_%d", prop:"Prop_SECTO6_%d"},
+          ],
+        years = [1993,2005], 
+
+        fieldsById = d3.nest()
+            .key(function(d) { return d.id; })
+            .rollup(function(d) { return d[0]; })
+            .map(fields),
+          field = fields[0],
+          year = years[0];
+
+          colorsector1 = colorbrewer.Greys;
+          var colorsector1 = d3.scale.quantize().range(colorsector1).domain([0,20]);
+          //var colorsector1 = d3.attr("class", "Blues");
+
+          colorsector2 = colorbrewer.Oranges;
+          var colorsector2 = d3.scale.quantize().range(colorsector2).domain([550,37500]);
+
+          colorsector3 = colorbrewer.Purples;
+          var colorsector3 = d3.scale.quantize().range(colorsector3).domain([1300,67510]);
+
+          colorsector4 = colorbrewer.Blues;
+          var colorsector4 = d3.scale.quantize().range(colorsector4).domain([1400,73700]);
+
+          colorsector5 = colorbrewer.Greens;
+          var colorsector5 = d3.scale.quantize().range(colorsector5).domain([1015,53440]);
+
+          colorsector6 = colorbrewer.Greys;
+          var colorsector6 = d3.scale.quantize().range(colorsector6).domain([740,29900]);
+
+          var body = d3.select("body");
+          
+       
+        var fieldSelect = d3.select("#field")
+            .on("change", function(e) {
+                field = fields[this.selectedIndex];
+                update();
+            });
+
+        fieldSelect.selectAll("option")
+            .data(fields)
+            .enter()
+            .append("option")
+              .attr("value", function(d) { return d.id; })
+              .text(function(d) { return d.name; });
+
+        var yearSelect = d3.select("#year")
+            .on("change", function(e) {
+              year = years[this.selectedIndex]; 
+              update();
+            });
+
+        yearSelect.selectAll("option")
+            .data(years)
+            .enter()
+            .append("option")
+              .attr("value", function(y) { return y; })
+              .text(function(y) { return y; })
+          
+
+        var map = d3.select("#map"),
+            zoom = d3.behavior.zoom()
+                .translate([-38, 32])
+                 .scale(.94)
+                .scaleExtent([0.5, 10.0])
+                .on("zoom", updateZoom),
+            layer = map.append("g")
+                .attr("id", "layer"),
+            states = layer.append("g")
+                .attr("id", "states")
+                .attr("id", "states2")
+                .selectAll("path");
+
+
+        // map.call(zoom);
+        updateZoom();
+
+        function updateZoom() {
+            var scale = zoom.scale();
+            layer.attr("transform",
+              "translate(" + zoom.translate() + ") " +
+              "scale(" + [scale, scale] + ")");
+        }
+    
+      var couleurs = ['#000000','#252525','#525252','#737373','#969696','#bdbdbd','#d9d9d9','#f0f0f0','#ffffff'];
+  
+      var projection =  d3.geo.equirectangular()
+            .center([-74.11,4.67])
+            .scale(100000),
+
+          topology,
+          geometries,
+          rawData,
+          dataById = {},
+          carto = d3.cartogram()
+            .projection(projection)
+            .properties(function(d) {
+              var c= dataById[d.id];
+
+              //console.log("value : ",c)
+
+              return dataById[d.id];
+            })
+            .value(function(d) {
+              return +d.properties[field.key.replace("%d",year), field.prop.replace("%d",year)];
+
+            })
+            //.value(function(d) {
+            //  return +d.properties[field.prop.replace("%d",year)];
+
+            //})
+;
+
+    
+    
+        d3.json("Localidades_multipart.json", function(topo) {
+            topology = topo;
+            geometries = topology.objects.Localidades_multipart.geometries;
+            d3.csv("localidad_bogota_4.csv", function(data) {
+
+                rawData = data;   
+                dataById = d3.nest()
+                .key(function(d) { return d.id; })
+                .rollup(function(d) { return d[0]; })
+                .map(data);
+                init();
+            });
+        });  
+
+
+
+        function init() {
+            var features = carto.features(topology, geometries),
+                path = d3.geo.path()
+                  .projection(projection);
+   
+            states = states.data(features)
+              .enter()
+              .append("path")
+                .attr("class", "state")
+               /* .attr("id", function(d) {
+                  return d.properties.id;
+                }) */ 
+                .attr("fill", "#fafafa")
+                .attr("d", path);
+
+           states.append("title");
+            update();
+        } 
+      
+    function update() {
+        if(field.key!=undefined){
+            body.classed("updating", true);
+         
+              var key = field.key.replace("%d",year);
+              console.log("key", key)
+              var key2= field.prop.replace("%d", year);
+              console.log("key 2", key2)
+
+              var fmt = (typeof field.format === "function")
+                  ? field.format
+                  : d3.format(field.format || ","),
+
+                value = function(d) {
+                    if(d.properties != undefined){
+                          return +d.properties[key];
+                        }
+                    else{ return NaN};
+                };
+
+
+                value2 = function(e) {
+                     if(e.properties != undefined){
+                           return +e.properties[key2];
+                       }
+                    else{ return NaN};
+                };
+
+
+                
+                var values = states.data()
+                    .map(value)
+                    .filter(function(n) {
+                        return !isNaN(n);
+                    })
+                    .sort(d3.ascending);
+
+                lo = values[0],
+                hi = values[values.length - 1];
+
+
+                var values2 = states.data()
+                     .map(value2)
+                     .filter(function(n) {
+                         return !isNaN(n);
+                     })
+                     .sort(d3.ascending);
+
+                lo2 = values2[0],
+                hi2 = values2[values2.length - 1];
+       
+                console.log("values : ", values)
+				console.log("values 2 :", values2)
+
+        // normalize the scale to positive numbers
+        var scale = d3.scale.linear()
+          .domain([lo, hi])
+          .range([1, 1000]);
+    
+        // tell the cartogram to use the scaled values
+        carto.value(function(d) {
+          return scale(value(d));
+        });
+
+        // generate the new features, pre-projected
+        var features = carto(topology, geometries).features;
+
+        // update the data
+        states.data(features)
+          .select("title")
+            .text(function(d) {
+              if(d.properties != undefined){
+              return [d.properties.id, fmt(value(d))].join(": ");
+              }
+            });
+
+
+        states.transition()
+          .duration(750)
+          .ease("linear")
+          .attr("fill", function(d) {
+	         if(field.id=="sector1"){
+	                 return colorsector1(value2(d))
+	         } else if (field.id=="sector2") {
+	                 return colorsector2(value(d))
+	         } else if (field.id=="sector3") {
+	                 return colorsector3(value(d))
+	         } else if (field.id=="sector4") {
+	                 return colorsector4(value(d))
+	         } else if (field.id=="sector5") {
+	                 return colorsector5(value(d))
+	         } else{
+	                 return colorsector6(value(d))
+	         }
+          })
+          .attr("d", carto.path);
+
+        body.classed("updating", false);
+      
+    }else{
+            var features = carto.features(topology, geometries);
+            // update the data
+            states.data(features)
+            path = d3.geo.path()
+              .projection(projection);
+            states.transition()
+              .duration(750)
+              .ease("linear")
+              .attr("fill","#fafafa")
+              .attr("d", path);
+
+    }
+}
+
+
+    </script>
+</body>
+</html>
