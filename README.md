@@ -1,6 +1,6 @@
 # Anamorphoses_animees
 
-Vous trouverez ci apres les fichiers utilises pour creer une anamorphose des arrondissements de Bogota (capitale de la Colombie).
+Vous trouverez ci apres les fichiers utilises pour creer une anamorphose animée des arrondissements de Bogota (capitale de la Colombie).
 
 Ces derniers peuvent etre deformes selon six categories d'ICS distinctes (Indice de condition sociale).
 
