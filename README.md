@@ -10,12 +10,11 @@ La carte a été réalisée dans le cadre d'une analyse portant sur les différe
 Parmi les fichiers disponibles, vous trouverez :
   - Localidades_multipart.json : fichier correspondant au fond de carte
   - localidad_bogota_4.csv     : fichier correspondant aux données liées au fond de carte
-  - index.html                 : fichier html  
-  - cartogram.js               : fichier correspondant 
-  - colorbrewer.js             : fichier correspondant 
-  - topojson_old.js            : fichier correspondant
+  - index.html                 : fichier html à executer  
+  - cartogram.js               : fichier javascript comprenant l'algorithme de Dougenik & al. pour construire une anamorphose 
+  - colorbrewer.js             : fichier pour le choix des couleurs des cartes choroplèthes, basé sur le travail du Dr. Cynthia Brewer
+  - topojson_old.js            : fichier pour lire les fichiers au format TopoJSON
   - AnimationD3_Bogota_ICS.gif : fichier correspondant au résultat obtenu à partir des autres fichiers au format GIF 
-
 
 
 
