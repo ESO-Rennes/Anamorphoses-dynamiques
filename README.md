@@ -17,7 +17,8 @@ Parmi les fichiers disponibles, vous trouverez :
   - AnimationD3_Bogota_ICS.gif : fichier correspondant au résultat obtenu à partir des autres fichiers au format GIF 
 
 
-
+</br>
+</br>
 
 
 Ce travail est inspiré de celui d'Etienne COME avec la "France du Bon Coin"(http://www.comeetie.fr/map_lbc.php) et de celui de Raphael DA SILVA (https://blog.m0le.net/2013/10/20/autopsie-dune-dataviz-3-une-carte-en-anamorphose-avec-champs-de-selection/).
