@@ -1,6 +1,6 @@
 # Anamorphoses_animees
 
-Vous trouverez ci-après les fichiers utilisés pour créer une anamorphose animée des arrondissements de Bogotá (capitale de la Colombie) (http://eso-rennes.cnrs.fr/fr/publications/autres-publications-1/anamorphoses-dynamiques.html).
+Vous trouverez ci-après les fichiers utilisés pour créer une anamorphose animée des arrondissements de Bogotá (capitale de la Colombie) (http://espenf.cnrs.fr/AnamorphoDyn).
 
 Ces derniers peuvent être déformés selon six catégories d'ICS distinctes (Indice de condition sociale).
 
